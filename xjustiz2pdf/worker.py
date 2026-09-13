@@ -32,7 +32,7 @@ class PdfWorker(QObject):
     progress = Signal(str)
 
     def __init__(self, parser, builder, in_path, out, filter_terms,
-                 only_originals, sort_order, disabled_paths,
+                 export_mode, sort_order, disabled_paths,
                  post_option="none", post_params=None):
         super().__init__()
         self.parser = parser
@@ -40,7 +40,7 @@ class PdfWorker(QObject):
         self.in_path = in_path
         self.out = out
         self.filter_terms = filter_terms
-        self.only_originals = only_originals
+        self.export_mode = export_mode
         self.sort_order = sort_order
         self.disabled_paths = disabled_paths or []
         self.post_option = post_option
@@ -67,7 +67,7 @@ class PdfWorker(QObject):
                 self.builder.build(root, base_dir, tmp_initial,
                                    status_callback=status_cb,
                                    filter_terms=self.filter_terms,
-                                   only_originals=self.only_originals,
+                                   export_mode=self.export_mode,
                                    disabled_paths=set(self.disabled_paths),
                                    post_option=self.post_option,
                                    post_params=self.post_params)

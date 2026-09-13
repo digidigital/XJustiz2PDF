@@ -52,7 +52,7 @@ Nach dem Start öffnet sich das Hauptfenster mit folgenden Bereichen:
 - **Ausgabe**: Zielpfad für die zu erzeugende PDF‑Akte/PDF-Datei.  
 - **Ausfiltern**: Eingabefeld für mit Leerzeichen getrennte Suchbegriffe, um bestimmte Dokumente gezielt vom Export auszuschließen. Beispiel: "protokoll" filtert "Besprechungsprotokoll" und "Signaturprotokoll"  
 - **Optionen**:
-  - *Nur Originale/Repräsentate exportieren*: Lässt automatisch alle nicht als Original bzw. Repräsentat gekennzeichnete Dokumente aus (z. B. Signaturen).  
+  - *Dokumentauswahl*: Auswahlfeld, das über die Kennzeichnung der Dokumente steuert, was exportiert wird: *Alle Dokumente exportieren* (Standard), *Nur Originale exportieren*, *Nur Repräsentate exportieren* oder *Nur Originale/Repräsentate exportieren*. Die drei letztgenannten Einstellungen lassen alle abweichend gekennzeichneten Dokumente aus (z. B. Signaturen). Die Auswahl wird automatisch gespeichert und beim nächsten Programmstart wieder vorbelegt.  
   - *Flaches Inhaltsverzeichnis*: Erzeugt ein einfaches Inhaltsverzeichnis ohne Hierarchie (alle Dokumente "in einem Topf").
   - *Sortierung*: Wahlweise Originalreihenfolge, aufsteigend oder absteigend nach Veraktungsdatum.  
   
@@ -80,7 +80,7 @@ Für die Arbeit mit der Originalakte empfehle ich [openXJV](https://openxjv.de).
 
 3. **Filter anwenden (optional)**  
    - Gib (Teil-)Begriffe ein, um bestimmte Dokumente auszublenden. Trenne mit Leerzeichen.  
-   - Aktiviere *Nur Originale/Repräsentate exportieren*, um z. B. automatisch Signaturprotokolle und Transfervermerke zu ignorieren.
+   - Wähle unter *Dokumentauswahl* z. B. *Nur Originale/Repräsentate exportieren*, um Signaturprotokolle und Transfervermerke automatisch zu ignorieren. Über *Nur Originale* bzw. *Nur Repräsentate* lassen sich die beiden Arten auch einzeln exportieren.
 
 4. **Sortierung festlegen**  
    - Wähle die gewünschte Reihenfolge (Original, aufsteigend, absteigend).

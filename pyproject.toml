@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "xjustiz2pdf"
-version = "0.1.3"
+version = "0.2.0"
 description = "Diese Desktopanwendung konvertiert XJustiz-Akten / E-Akten in eine Gesamt-PDF (PDF-Converter for electronic records)"
 readme = "README.md"
 license = "GPL-3.0-or-later"
@@ -17,7 +17,9 @@ dependencies = [
   "pypdf",
   "fpdf2",
   "Pillow",
-  "docx2pdf",
+  # Nur Fallback für .docx, wenn kein LibreOffice gefunden wird. Steuert MS Word
+  # über COM (Windows) bzw. AppleScript (macOS) und ist unter Linux funktionslos.
+  "docx2pdf; sys_platform == 'win32' or sys_platform == 'darwin'",
   "requests"
 ]
 requires-python = ">=3.9"

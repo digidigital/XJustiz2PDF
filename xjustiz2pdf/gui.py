@@ -27,7 +27,10 @@ GUI-Modulstruktur
 
 """
 import os
-import requests  # NEU: GitHub API für Release-Check
+# requests wird erst in _check_latest_release() importiert. So bleibt die
+# Versionsprüfung optional: fehlt das Paket, entfällt nur der Update-Hinweis,
+# statt den Import des gesamten Moduls scheitern zu lassen (z. B. bei Einbettung
+# in eine fremde Anwendung, die requests nicht mitbringt).
 from PySide6.QtWidgets import (
     QMainWindow, QWidget, QGridLayout, QHBoxLayout,
     QLabel, QLineEdit, QPushButton, QCheckBox, QComboBox,
@@ -37,6 +40,7 @@ from PySide6.QtGui import QIcon
 from PySide6.QtCore import QSettings, Qt  # NEU: Qt für Zentrierung
 from .parser import AktenParser, DocNode
 from .pdfbuilder import PDFBuilder
+from .pdfbuilder_selection import EXPORT_MODE_CODES, DEFAULT_EXPORT_MODE
 from .utils import find_ghostscript, resource_path
 
 # Importiere die modularisierten Mixins
@@ -51,10 +55,19 @@ class MainWindow(QMainWindow,
                  IOHandlerMixin,
                  BuildHandlerMixin,
                  StatusHandlerMixin):
-    def __init__(self):
+    def __init__(self, check_updates: bool = True):
+        """
+        check_updates: Steuert die Abfrage der neuesten Version bei GitHub.
+                       Standalone standardmäßig aktiv. Wird XJustiz2PDF als Modul
+                       in eine andere Anwendung eingebettet, sollte die einbettende
+                       Anwendung check_updates=False setzen – sie bringt in der Regel
+                       eine eigene Versionsprüfung mit, und ein zusätzlicher, für den
+                       Anwender nicht erkennbarer Netzaufruf ist unerwünscht.
+        """
         super().__init__()
+        self._check_updates = check_updates
         self.setWindowTitle(f"XJustiz2PDF {__version__} | XJustiz E-Akte → PDF-Akte")
-        self.setFixedSize(840, 750)
+        self.setFixedSize(1100, 750)
 
         # Icon über resource_path laden
         icon_path = resource_path("icons", "programmicon.ico")
@@ -78,9 +91,13 @@ class MainWindow(QMainWindow,
 
     def _check_latest_release(self):
         """
-        Gibt (latest_tag, release_url) zurück, oder (None, None) bei Fehler/Offline.
+        Gibt (latest_tag, release_url) zurück, oder (None, None) bei Fehler/Offline,
+        deaktivierter Prüfung oder fehlendem requests-Paket.
         """
+        if not self._check_updates:
+            return None, None
         try:
+            import requests  # optionale Abhängigkeit, siehe Modulkopf
             url = "https://api.github.com/repos/digidigital/XJustiz2PDF/releases/latest"
             r = requests.get(url, timeout=5)
             r.raise_for_status()
@@ -141,18 +158,22 @@ class MainWindow(QMainWindow,
         self.filter_btn.setMinimumWidth(140)
 
         # Optionen
-        self.only_originals_cb = QCheckBox("Nur Originale/Repräsentate exportieren")
+        self.export_mode_combo = QComboBox()
+        self.export_mode_combo.addItem("Alle Dokumente exportieren", "all")
+        self.export_mode_combo.addItem("Nur Originale exportieren", "original")
+        self.export_mode_combo.addItem("Nur Repräsentate exportieren", "repraesentat")
+        self.export_mode_combo.addItem("Nur Originale/Repräsentate exportieren", "original_repraesentat")
         self.flat_outline_cb = QCheckBox("Flaches Inhaltsverzeichnis erzeugen")
         self.sort_label = QLabel("Sortierreihenfolge (Veraktungsdatum):")
         self.sort_combo = QComboBox()
         self.sort_combo.addItems(["original", "absteigend", "aufsteigend"])
 
         # Automatisches Laden der gespeicherten Werte
-        self.only_originals_cb.setChecked(self.settings.value("only_originals", False, type=bool))
+        self._load_export_mode()
         self.flat_outline_cb.setChecked(self.settings.value("flat_outline", False, type=bool))
         self.sort_combo.setCurrentText(self.settings.value("sort_order", "original"))
         options_row = QHBoxLayout()
-        options_row.addWidget(self.only_originals_cb)
+        options_row.addWidget(self.export_mode_combo)
         options_row.addStretch(1)
         options_row.addWidget(self.flat_outline_cb)
         options_row.addStretch(1)
@@ -227,12 +248,25 @@ class MainWindow(QMainWindow,
         links_layout.addStretch(1)
         grid.addLayout(links_layout, 9, 0, 1, 3)
 
+    def _load_export_mode(self):
+        """
+        Setzt das Export-Dropdown aus den gespeicherten Einstellungen.
+        Migriert dabei die frühere Checkbox-Einstellung 'only_originals'.
+        """
+        mode = self.settings.value("export_mode", "", type=str)
+        if mode not in EXPORT_MODE_CODES:
+            legacy_only_originals = self.settings.value("only_originals", False, type=bool)
+            mode = "original_repraesentat" if legacy_only_originals else DEFAULT_EXPORT_MODE
+            self.settings.setValue("export_mode", mode)
+        index = self.export_mode_combo.findData(mode)
+        self.export_mode_combo.setCurrentIndex(index if index >= 0 else 0)
+
     def _setup_persistence_hooks(self):
         self.filter_edit.textChanged.connect(
             lambda txt: self.settings.setValue("filter_terms", txt)
         )
-        self.only_originals_cb.toggled.connect(
-            lambda checked: self.settings.setValue("only_originals", checked)
+        self.export_mode_combo.currentIndexChanged.connect(
+            lambda _: self.settings.setValue("export_mode", self.export_mode_combo.currentData())
         )
         self.flat_outline_cb.toggled.connect(
             lambda checked: self.settings.setValue("flat_outline", checked)

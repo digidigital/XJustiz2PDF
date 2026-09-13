@@ -3,5 +3,8 @@ lxml
 pypdf
 fpdf2
 Pillow
-docx2pdf
+# Nur Fallback für .docx, wenn kein LibreOffice gefunden wird. Steuert MS Word
+# über COM (Windows) bzw. AppleScript (macOS) und ist unter Linux funktionslos.
+docx2pdf; sys_platform == "win32" or sys_platform == "darwin"
+# Optional: nur für die Versionsprüfung beim Programmstart.
 requests

@@ -35,6 +35,8 @@ from .pdfbuilder_selection import (
     build_state_accessor,
     get_root_docs_and_state,
     collect_docs_flat,
+    is_excluded_by_export_mode,
+    DEFAULT_EXPORT_MODE,
 )
 from .pdfbuilder_outline import (
     add_outline_safe,
@@ -68,11 +70,19 @@ class PDFBuilder:
         output_pdf: str,
         status_callback=None,
         filter_terms: Optional[List[str]] = None,
-        only_originals: bool = False,
+        export_mode: str = DEFAULT_EXPORT_MODE,
         disabled_paths: Optional[set[Tuple[str, ...]]] = None,
         post_option: str = "none",
         post_params: Optional[dict] = None,
+        only_originals: Optional[bool] = None,
     ):
+        # Rückwärtskompatibilität: only_originals=True entspricht dem Modus
+        # "original_repraesentat", only_originals=False dem Modus "all".
+        if only_originals is not None:
+            export_mode = "original_repraesentat" if only_originals else "all"
+            debug("[Builder] Veralteter Parameter 'only_originals' verwendet – "
+                  f"abgebildet auf export_mode='{export_mode}'.")
+
         filter_terms = [t.lower() for t in (filter_terms or []) if t]
         disabled_paths = set(disabled_paths or set())
         post_params = post_params or {}
@@ -90,7 +100,7 @@ class PDFBuilder:
 
             if self.flat_outline:
                 debug("[Builder] Verwende flache Outline.")
-                all_docs = collect_docs_flat(root, state_for_path, filter_terms, only_originals)
+                all_docs = collect_docs_flat(root, state_for_path, filter_terms, export_mode)
                 debug(f"[Builder] Gefundene Dokumente (flat): {len(all_docs)}")
                 sort_docs(all_docs, self.sort_order)
                 for doc in all_docs:
@@ -112,8 +122,8 @@ class PDFBuilder:
                     for doc in root_docs:
                         text = (doc.anzeigename or "") + " " + (doc.file_path or "")
                         match_terms = any(term in text.lower() for term in filter_terms)
-                        match_originals = only_originals and doc.bestandteil_code not in ("001", "002")
-                        if match_terms or match_originals:
+                        match_export_mode = is_excluded_by_export_mode(doc, export_mode)
+                        if match_terms or match_export_mode:
                             debug(f"[Builder] Root-Dokument ausgefiltert: {title_for_doc(doc)}")
                             continue
                         title = title_for_doc(doc)
@@ -135,8 +145,8 @@ class PDFBuilder:
                         for doc in docs_here:
                             text = (doc.anzeigename or "") + " " + (doc.file_path or "")
                             match_terms = any(term in text.lower() for term in filter_terms)
-                            match_originals = only_originals and doc.bestandteil_code not in ("001", "002")
-                            if match_terms or match_originals:
+                            match_export_mode = is_excluded_by_export_mode(doc, export_mode)
+                            if match_terms or match_export_mode:
                                 debug(f"[Builder] Dokument ausgefiltert: {title_for_doc(doc)}")
                                 continue
                             title = title_for_doc(doc)

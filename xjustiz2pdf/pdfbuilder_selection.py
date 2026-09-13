@@ -25,6 +25,27 @@ from .parser import DocNode
 from .utils import debug
 
 
+# Bestandteil-Codes gemäß XJustiz: 001 = Original, 002 = Repräsentat.
+# None bedeutet "kein Bestandteil-Filter".
+EXPORT_MODE_CODES: dict[str, Optional[Tuple[str, ...]]] = {
+    "all": None,
+    "original": ("001",),
+    "repraesentat": ("002",),
+    "original_repraesentat": ("001", "002"),
+}
+
+DEFAULT_EXPORT_MODE = "all"
+
+
+def is_excluded_by_export_mode(doc: DocNode, export_mode: str) -> bool:
+    """
+    True, wenn das Dokument wegen seines Bestandteil-Codes ausgefiltert wird.
+    Unbekannte Modi filtern nicht (Fallback auf "alle Dokumente").
+    """
+    codes = EXPORT_MODE_CODES.get(export_mode)
+    return codes is not None and doc.bestandteil_code not in codes
+
+
 def build_state_accessor(check_states: dict[Tuple[str, ...], int], disabled_paths: set[Tuple[str, ...]]) -> Callable[[Optional[Tuple[str, ...]]], int]:
     """
     Liefert eine Funktion, die für einen gegebenen Pfad den CheckState zurückgibt.
@@ -55,7 +76,7 @@ def collect_docs_flat(
     root: DocNode,
     state_for_path: Callable[[Optional[Tuple[str, ...]]], int],
     filter_terms: List[str],
-    only_originals: bool
+    export_mode: str = DEFAULT_EXPORT_MODE
 ) -> List[DocNode]:
     """
     Sammelt alle Dokumente für den flachen Outline-Modus.
@@ -66,12 +87,12 @@ def collect_docs_flat(
     def should_filter(doc: DocNode) -> bool:
         text = (doc.anzeigename or "") + " " + (doc.file_path or "")
         match_terms = any(term.lower() in text.lower() for term in filter_terms)
-        match_originals = only_originals and doc.bestandteil_code not in ("001", "002")
+        match_export_mode = is_excluded_by_export_mode(doc, export_mode)
         if match_terms:
             debug(f"[Selection] Flach: Dokument ausgefiltert durch Begriff(e): {doc.anzeigename}")
-        if match_originals:
-            debug(f"[Selection] Flach: Dokument ausgefiltert (kein Original/Repräsentat): {doc.anzeigename}")
-        return match_terms or match_originals
+        if match_export_mode:
+            debug(f"[Selection] Flach: Dokument ausgefiltert (Modus '{export_mode}', Code={doc.bestandteil_code}): {doc.anzeigename}")
+        return match_terms or match_export_mode
 
     def walk(node: DocNode, path_here: Tuple[str, ...]):
         state = state_for_path(path_here)

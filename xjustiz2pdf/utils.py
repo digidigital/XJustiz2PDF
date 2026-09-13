@@ -23,9 +23,11 @@ Dieses Modul unils.py enthält Hilfsfunktionen für das Projekt.
 - cleanup_temp(): entfernt temporäre Verzeichnisse nach der Verarbeitung.
 - find_ghostscript(): versucht Ghostscript in typischen Installationspfaden oder im PATH zu finden.
 - resource_path(): liefert einen Pfad zu Ressourcen relativ zum Modulverzeichnis (z.B. Icons).
+- subprocess_kwargs(): einheitliche Startparameter für externe Programme.
 """
 
 import os
+import sys
 import tempfile
 import zipfile
 import shutil
@@ -145,3 +147,28 @@ def resource_path(*parts: str) -> str:
     Beispiel: resource_path("icons", "programmicon.ico")
     """
     return os.path.join(os.path.dirname(__file__), *parts)
+
+
+def subprocess_kwargs() -> dict:
+    """
+    Einheitliche Startparameter für externe Programme (LibreOffice, Ghostscript).
+
+    - Windows: unterdrückt das kurz aufblitzende Konsolenfenster, das eine
+      eingefrorene GUI-Anwendung sonst bei jedem Aufruf zeigt.
+    - Eingefroren unter Linux/macOS: entfernt LD_LIBRARY_PATH aus der Umgebung des
+      Kindprozesses. PyInstaller und AppImage setzen die Variable auf ihre eigenen
+      mitgelieferten Bibliotheken; ein externes Programm würde sonst inkompatible
+      .so-Dateien laden und abstürzen oder sich falsch verhalten.
+
+    Die Bereinigung greift bewusst nur im eingefrorenen Zustand, damit ein vom
+    Anwender gesetztes LD_LIBRARY_PATH (z. B. Conda) im Normalbetrieb erhalten bleibt.
+    """
+    kwargs: dict = {}
+    if os.name == "nt":
+        CREATE_NO_WINDOW = 0x08000000
+        kwargs["creationflags"] = CREATE_NO_WINDOW
+    elif getattr(sys, "frozen", False):
+        env = os.environ.copy()
+        env.pop("LD_LIBRARY_PATH", None)
+        kwargs["env"] = env
+    return kwargs

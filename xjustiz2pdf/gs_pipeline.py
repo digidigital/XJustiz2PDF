@@ -26,7 +26,7 @@ import re
 import uuid
 from concurrent.futures import ProcessPoolExecutor, as_completed
 from typing import List, Tuple, Optional
-from .utils import debug
+from .utils import debug, subprocess_kwargs
 
 # Globale Timeout-Konfiguration
 SUBPROCESS_TIMEOUT_SECONDS = 180
@@ -65,11 +65,9 @@ def _run_gs(gs_path: Optional[str], input_pdf: str, output_pdf: str, quality: st
         return input_pdf, False, "Ungültiger Ghostscript-Pfad"
 
     cmd = _gs_cmd(gs_path, input_pdf, output_pdf, quality)
-    kwargs = {}
-    if sys.platform.startswith("win"):
-        CREATE_NO_WINDOW = 0x08000000
-        kwargs["creationflags"] = CREATE_NO_WINDOW
-    else:
+    # creationflags (Windows) bzw. bereinigtes LD_LIBRARY_PATH (eingefroren)
+    kwargs = subprocess_kwargs()
+    if not sys.platform.startswith("win"):
         kwargs["stdout"] = subprocess.DEVNULL
         kwargs["stderr"] = subprocess.DEVNULL
 

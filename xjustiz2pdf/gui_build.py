@@ -32,7 +32,7 @@ class BuildHandlerMixin:
         widgets = [
             self.input_edit, self.input_btn,
             self.out_edit, self.out_btn,
-            self.filter_edit, self.only_originals_cb,
+            self.filter_edit, self.export_mode_combo,
             self.sort_combo, self.flat_outline_cb,
             self.tree,
             self.build_btn,
@@ -119,7 +119,7 @@ class BuildHandlerMixin:
         in_path = self.input_edit.text().strip()
         out = self.out_edit.text().strip()
         filter_terms = self.filter_edit.text().strip().split()
-        only_originals = self.only_originals_cb.isChecked()
+        export_mode = self.export_mode_combo.currentData()
         sort_order = self.sort_combo.currentText()
         flat_outline = self.flat_outline_cb.isChecked()
 
@@ -156,7 +156,7 @@ class BuildHandlerMixin:
             in_path=in_path,
             out=out,
             filter_terms=filter_terms,
-            only_originals=only_originals,
+            export_mode=export_mode,
             sort_order=sort_order,
             disabled_paths=list(self.disabled_nodes_paths),
             post_option=post_option,

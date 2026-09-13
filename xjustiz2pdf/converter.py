@@ -29,7 +29,7 @@ import re
 import uuid
 from typing import Optional, Tuple
 
-from .utils import debug
+from .utils import debug, subprocess_kwargs
 
 # Globale Timeout-Konfiguration
 SUBPROCESS_TIMEOUT_SECONDS = 180
@@ -121,7 +121,7 @@ def _detect_libreoffice() -> Optional[str]:
 def _with_timeout_subprocess(cmd: list, timeout: int = SUBPROCESS_TIMEOUT_SECONDS, cwd: Optional[str] = None) -> Tuple[bool, Optional[str]]:
     try:
         debug(f"[Converter] Starte Subprozess: {' '.join(cmd)} (timeout={timeout}s)")
-        subprocess.run(cmd, check=True, timeout=timeout, cwd=cwd)
+        subprocess.run(cmd, check=True, timeout=timeout, cwd=cwd, **subprocess_kwargs())
         return True, None
     except subprocess.TimeoutExpired:
         return False, "Timeout erreicht"
