@@ -49,7 +49,7 @@ Nach dem Start öffnet sich das Hauptfenster mit folgenden Bereichen:
 - **Eingabe**: Auswahl einer XML‑ oder ZIP‑Datei mit xJustiz‑Nachrichten (Bei der Auswahl von ZIP-Dateien wird eine xjustiz_nachricht.xml in der obersten Ebene erwartet und automatisch eingelesen). 
 - **Baumansicht**: Zeigt die komplette Aktenstruktur. Jeder Ordner kann einzeln angehakt werden. Nur Dokumente in Ordnern mit einem ☑ werden exportiert!   
 - **Alle Haken entfernen**: Entfernt alle Häkchen im Baum. 
-- **Ausgabe**: Zielpfad für die zu erzeugende PDF‑Akte/PDF-Datei.  
+- **Ausgabe**: Zielpfad für die zu erzeugende PDF‑Akte/PDF-Datei. Über *Ziel-PDF wählen* öffnet sich ein Dateidialog, in dem Ordner und Dateiname mit *Ausgabedatei festlegen* bestätigt werden. Die Datei wird erst beim Klick auf *PDF erzeugen* geschrieben.  
 - **Ausfiltern**: Eingabefeld für mit Leerzeichen getrennte Suchbegriffe, um bestimmte Dokumente gezielt vom Export auszuschließen. Beispiel: "protokoll" filtert "Besprechungsprotokoll" und "Signaturprotokoll"  
 - **Optionen**:
   - *Dokumentauswahl*: Auswahlfeld, das über die Kennzeichnung der Dokumente steuert, was exportiert wird: *Alle Dokumente exportieren* (Standard), *Nur Originale exportieren*, *Nur Repräsentate exportieren* oder *Nur Originale/Repräsentate exportieren*. Die drei letztgenannten Einstellungen lassen alle abweichend gekennzeichneten Dokumente aus (z. B. Signaturen). Die Auswahl wird automatisch gespeichert und beim nächsten Programmstart wieder vorbelegt.  
@@ -73,6 +73,7 @@ Für die Arbeit mit der Originalakte empfehle ich [openXJV](https://openxjv.de).
 1. **Datei laden**  
    - Wähle über *Eingabe* eine XML‑ oder ZIP‑Datei.  
    - Die Aktenstruktur wird im Baum angezeigt.
+   - Lege über *Ziel-PDF wählen* fest, wo die PDF-Akte gespeichert werden soll, und bestätige mit *Ausgabedatei festlegen*.
 
 2. **Dokumente auswählen**  
    - Setze Häkchen bei den gewünschten Ordnern oder Dokumenten.  

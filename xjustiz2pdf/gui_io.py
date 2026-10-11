@@ -93,9 +93,14 @@ class IOHandlerMixin:
 
     def choose_output(self):
         start_dir = self._start_dir("last_output_dir")
-        path, _ = QFileDialog.getSaveFileName(
-            self, "Ziel-PDF wählen", start_dir, "PDF (*.pdf)"
-        )
+        dialog = QFileDialog(self, "Ziel-PDF wählen", start_dir, "PDF (*.pdf)")
+        dialog.setAcceptMode(QFileDialog.AcceptMode.AcceptSave)
+        dialog.setFileMode(QFileDialog.FileMode.AnyFile)
+        dialog.setLabelText(QFileDialog.DialogLabel.Accept, "Ausgabedatei festlegen")
+        if not dialog.exec():
+            return
+        files = dialog.selectedFiles()
+        path = files[0] if files else ""
         if not path:
             return
         self.out_edit.setText(path)
